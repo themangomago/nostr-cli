@@ -33,8 +33,8 @@ Create json files for the queries to be made:
 
 Call nostrcli:
   
-    ```bash
-    nostrcli -f <file> -r <relay>
-    ```
+  ```bash
+  nostrcli -f <file> -r <relay>
+  ```
 
 By default the relay is set to `http://localhost:8080` and the file is set to `query.json`.
