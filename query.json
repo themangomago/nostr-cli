@@ -1,0 +1,6 @@
+{
+    "type": "REQ",
+    "payload": {
+        "authors": ["df50f3108b22fade9b59f5ca664604166ad78428fb221aebf360dbb8051a997d"]
+    }
+}
