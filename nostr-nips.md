@@ -1,6 +1,6 @@
 ## NIPS from the Nostr Protocol GitHub repository
 
-This file was generated on 2023-01-20 20:37:24.
+This file was generated on 2023-02-05 16:54:02.
 
 
 
@@ -24,8 +24,8 @@ The only object type that exists is the `event`, which has the following format 
 
 ```json
 {
-  "id": <32-bytes sha256 of the the serialized event data>
-  "pubkey": <32-bytes hex-encoded public key of the event creator>,
+  "id": <32-bytes lowercase hex-encoded sha256 of the the serialized event data>
+  "pubkey": <32-bytes lowercase hex-encoded public key of the event creator>,
   "created_at": <unix timestamp in seconds>,
   "kind": <integer>,
   "tags": [
@@ -74,8 +74,8 @@ Clients can send 3 types of messages, which must be JSON arrays, according to th
   "kinds": <a list of a kind numbers>,
   "#e": <a list of event ids that are referenced in an "e" tag>,
   "#p": <a list of pubkeys that are referenced in a "p" tag>,
-  "since": <a timestamp, events must be newer than this to pass>,
-  "until": <a timestamp, events must be older than this to pass>,
+  "since": <an integer unix timestamp, events must be newer than this to pass>,
+  "until": <an integer unix timestamp, events must be older than this to pass>,
   "limit": <maximum number of events to be returned in the initial query>
 }
 ```
@@ -114,7 +114,7 @@ A relay may choose to treat different message kinds differently, and it may or m
 ## Other Notes:
 
 - Clients should not open more than one websocket to each relay. One channel can support an unlimited number of subscriptions, so clients should do that.
-- The `tags` array can store a tag identifier as the first element of each subarray, plus arbitrary information afterward (always as strings). This NIP defines `"p"` â€” meaning "pubkey", which points to a pubkey of someone that is referred to in the event â€”, and `"e"` â€” meaning "event", which points to the id of an event this event is quoting, replying to or referring to somehow.
+- The `tags` array can store a tag identifier as the first element of each subarray, plus arbitrary information afterward (always as strings). This NIP defines `"p"` — meaning "pubkey", which points to a pubkey of someone that is referred to in the event —, and `"e"` — meaning "event", which points to the id of an event this event is quoting, replying to or referring to somehow.
 - The `<recommended relay URL>` item present on the `"e"` and `"p"` tags is an optional (could be set to `""`) URL of a relay the client could attempt to connect to fetch the tagged event or other events from a tagged profile. It MAY be ignored, but it exists to increase censorship resistance and make the spread of relay addresses more seamless across clients.
 
 
@@ -219,7 +219,7 @@ When there is an OTS available it MAY be included in the existing event body und
 
 The _event id_ MUST be used as the raw hash to be included in the OpenTimestamps merkle tree.
 
-The attestation can be either provided by relays automatically (and the OTS binary contents just appended to the events it receives) or by clients themselves when they first upload the event to relays â€” and used by clients to show that an event is really "at least as old as [OTS date]".
+The attestation can be either provided by relays automatically (and the OTS binary contents just appended to the events it receives) or by clients themselves when they first upload the event to relays — and used by clients to show that an event is really "at least as old as [OTS date]".
 
 
 ---
@@ -323,7 +323,7 @@ or with the **optional** `"relays"` attribute:
 
 If the pubkey matches the one given in `"names"` (as in the example above) that means the association is right and the `"nip05"` identifier is valid and can be displayed.
 
-The optional `"relays"` attribute may contain an object with public keys as properties and arrays of relay URLs as values. When present, that can be used to help clients learn in which relays a that user may be found. Web servers which serve `/.well-known/nostr.json` files dynamically based on the query string SHOULD also serve the relays data for any name they serve in the same reply when that is available.
+The optional `"relays"` attribute may contain an object with public keys as properties and arrays of relay URLs as values. When present, that can be used to help clients learn in which relays that user may be found. Web servers which serve `/.well-known/nostr.json` files dynamically based on the query string SHOULD also serve the relays data for any name they serve in the same reply when that is available.
 
 ## Finding users from their NIP-05 identifier
 
@@ -894,6 +894,7 @@ These are the possible bech32 prefixes with `TLV`:
 
   - `nprofile`: a nostr profile
   - `nevent`: a nostr event
+  - `nrelay`: a nostr relay
 
 These possible standardized `TLV` types are indicated here:
 
@@ -901,9 +902,11 @@ These possible standardized `TLV` types are indicated here:
   - depends on the bech32 prefix:
     - for `nprofile` it will be the 32 bytes of the profile public key
     - for `nevent` it will be the 32 bytes of the event id
+    - for `nrelay`, this is the relay URL.
+  - for `nprofile`, `nevent` and `nrelay` this may be included only once.
 - `1`: `relay`
   - A relay in which the entity (profile or event) is more likely to be found, encoded as UTF-8. This may be included multiple times.
-
+  - not applicable to `nrelay`.
 ## Examples
 
 - `npub180cvv07tjdrrgpa0j7j7tmnyl2yr6yr7l8j4s3evf6u64th6gkwsyjh6w6` should decode into the public key hex `3bf0c63fcb93463407af97a5e5ee64fa883d107ef9e558472c4eb9aaaefa459d` and vice-versa
@@ -1013,6 +1016,30 @@ Future Extensions
 -----------------
 
 This proposal SHOULD be extended to support further commands in the future, such as REQ and AUTH. They are left out of this initial version to keep things simpler.
+
+
+---
+
+NIP-21
+======
+
+`nostr:` URL scheme
+-------------------
+
+`draft` `optional` `author:fiatjaf`
+
+This NIP standardizes the usage of a common URL scheme for maximum interoperability and openness in the network.
+
+The scheme is `nostr:`.
+
+The identifiers that come after are expected to be the same as those defined in NIP-19 (except `nsec`).
+
+## Examples
+
+- `nostr:npub1sn0wdenkukak0d9dfczzeacvhkrgz92ak56egt7vdgzn8pv2wfqqhrjdv9`
+- `nostr:nprofile1qqsrhuxx8l9ex335q7he0f09aej04zpazpl0ne2cgukyawd24mayt8gpp4mhxue69uhhytnc9e3k7mgpz4mhxue69uhkg6nzv9ejuumpv34kytnrdaksjlyr9p`
+- `nostr:note1fntxtkcy9pjwucqwa9mddn7v03wwwsu9j330jj350nvhpky2tuaspk6nqc`
+- `nostr:nevent1qqstna2yrezu5wghjvswqqculvvwxsrcvu7uc0f78gan4xqhvz49d9spr3mhxue69uhkummnw3ez6un9d3shjtn4de6x2argwghx6egpr4mhxue69uhkummnw3ez6ur4vgh8wetvd3hhyer9wghxuet5nxnepm`
 
 
 ---
@@ -1140,7 +1167,7 @@ This NIP introduces a new tag: `delegation` which is formatted as follows:
   "delegation",
   <pubkey of the delegator>,
   <conditions query string>,
-  <64-bytes schnorr signature of the sha256 hash of the delegation token>
+  <64-byte Schnorr signature of the sha256 hash of the delegation token>
 ]
 ```
 
@@ -1152,6 +1179,28 @@ The **delegation token** should be a 64-byte Schnorr signature of the sha256 has
 nostr:delegation:<pubkey of publisher (delegatee)>:<conditions query string>
 ```
 
+##### Conditions Query String
+
+The following fields and operators are supported in the above query string:
+
+*Fields*:
+1. `kind`
+   -  *Operators*:
+      -  `=${KIND_NUMBER}` - delegatee may only sign events of this kind
+2. `created_at`
+   -  *Operators*:
+      -  `<${TIMESTAMP}` - delegatee may only sign events created ***before*** the specified timestamp
+      -  `>${TIMESTAMP}` - delegatee may only sign events created ***after*** the specified timestamp
+
+In order to create a single condition, you must use a supported field and operator. Multiple conditions can be used in a single query string, including on the same field. Conditions must be combined with `&`.
+
+For example, the following condition strings are valid:
+
+- `kind=1&created_at<1675721813`
+- `kind=0&kind=1&created_at>1675721813`
+- `kind=1&created_at>1674777689&created_at<1675721813`
+
+For the vast majority of use-cases, it is advisable that query strings should include a `created_at` ***after*** condition reflecting the current time, to prevent the delegatee from publishing historic notes on the delegator's behalf.
 
 #### Example
 
@@ -1165,45 +1214,44 @@ privkey: 777e4f60b4aa87937e13acc84f7abcc3c93cc035cb4c1e9f7a9086dd78fffce1
 pubkey:  477318cfb5427b9cfc66a9fa376150c1ddbc62115ae27cef72417eb959691396
 ```
 
-Delegation string to grant note publishing authorization to the delegatee (477318cf) for the next 30 days.
+Delegation string to grant note publishing authorization to the delegatee (477318cf) from now, for the next 30 days, given the current timestamp is `1674834236`.
 ```json
-nostr:delegation:477318cfb5427b9cfc66a9fa376150c1ddbc62115ae27cef72417eb959691396:kind=1&created_at<1675721885
+nostr:delegation:477318cfb5427b9cfc66a9fa376150c1ddbc62115ae27cef72417eb959691396:kind=1&created_at>1674834236&created_at<1677426236
 ```
 
-The delegator (8e0d3d3e) then signs the above delegation string, the result of which is the delegation token:
+The delegator (8e0d3d3e) then signs a SHA256 hash of the above delegation string, the result of which is the delegation token:
 ```
-cbc49c65fe04a3181d72fb5a9f1c627e329d5f45d300a2dfed1c3e788b7834dad48a6d27d8e244af39c77381334ede97d4fd15abe80f35fda695fd9bd732aa1e
+6f44d7fe4f1c09f3954640fb58bd12bae8bb8ff4120853c4693106c82e920e2b898f1f9ba9bd65449a987c39c0423426ab7b53910c0c6abfb41b30bc16e5f524
 ```
 
 The delegatee (477318cf) can now construct an event on behalf of the delegator (8e0d3d3e). The delegatee then signs the event with its own private key and publishes.
 ```json
 {
-  "id": "ac4c71e69c39b1bd605de812543ebfaf81d5af365354f061d48981fb61e00b8a",
+  "id": "e93c6095c3db1c31d15ac771f8fc5fb672f6e52cd25505099f62cd055523224f",
   "pubkey": "477318cfb5427b9cfc66a9fa376150c1ddbc62115ae27cef72417eb959691396",
-  "created_at": 1673129661,
+  "created_at": 1677426298,
   "kind": 1,
   "tags": [
     [
       "delegation",
       "8e0d3d3eb2881ec137a11debe736a9086715a8c8beeeda615780064d68bc25dd",
-      "kind=1&created_at<1675721813",
-      "cbc49c65fe04a3181d72fb5a9f1c627e329d5f45d300a2dfed1c3e788b7834dad48a6d27d8e244af39c77381334ede97d4fd15abe80f35fda695fd9bd732aa1e"
+      "kind=1&created_at>1674834236&created_at<1677426236",
+      "6f44d7fe4f1c09f3954640fb58bd12bae8bb8ff4120853c4693106c82e920e2b898f1f9ba9bd65449a987c39c0423426ab7b53910c0c6abfb41b30bc16e5f524"
     ]
   ],
   "content": "Hello, world!",
-  "sig": "55ed9a78d6449b8c189b6dbc34bc4bcd34dcc79e6da6c9078268fe3d7c0cbe62b1b907ffb76ba591e83895b1329bf2e6e16f3b0cd5827272e420d419c6f0f0b5"
+  "sig": "633db60e2e7082c13a47a6b19d663d45b2a2ebdeaf0b4c35ef83be2738030c54fc7fd56d139652937cdca875ee61b51904a1d0d0588a6acd6168d7be2909d693"
 }
 ```
 
-The event should be considered a valid delegation if the conditions are satisfied (`kind=1` and `created_at<1675721813` in this example) and, upon validation of the delegation token, are found to be unchanged from the conditions in the original delegation string.
+The event should be considered a valid delegation if the conditions are satisfied (`kind=1`, `created_at>1674834236` and `created_at<1677426236` in this example) and, upon validation of the delegation token, are found to be unchanged from the conditions in the original delegation string.
 
 Clients should display the delegated note as if it was published directly by the delegator (8e0d3d3e).
 
 
 #### Relay & Client Querying Support
 
-Relays should answer requests such as `["REQ", "", {"authors": ["A"]}]` by querying both the `pubkey` and delegation tags `[1]` value.  
-
+Relays should answer requests such as `["REQ", "", {"authors": ["A"]}]` by querying both the `pubkey` and delegation tags `[1]` value.
 
 ---
 
@@ -1263,7 +1311,7 @@ Clients SHOULD use [NIP-10](10.md) marked "e" tags to recommend a relay.
 ```json
 {
     "content": "{\"name\": \"Updated Demo Channel\", \"about\": \"Updating a test channel.\", \"picture\": \"https://placekitten.com/201/201\"}",
-    "tags": [["e", <channel_create_event_id> <relay-url>]],
+    "tags": [["e", <channel_create_event_id>, <relay-url>]],
     ...
 }
 ```
@@ -1282,7 +1330,7 @@ Root message:
 ```json
 {
     "content": <string>,
-    "tags": [["e", <kind_40_event_id> <relay-url> "root"]],
+    "tags": [["e", <kind_40_event_id>, <relay-url>, "root"]],
     ...
 }
 ```
@@ -1293,8 +1341,8 @@ Reply to another message:
 {
     "content": <string>,
     "tags": [
-        ["e", <kind_42_event_id> <relay-url> "reply"],
-        ["p", <pubkey> <relay-url>],
+        ["e", <kind_42_event_id>, <relay-url>, "reply"],
+        ["p", <pubkey>, <relay-url>],
         ...
     ],
     ...
@@ -1381,10 +1429,12 @@ This NIP adds a new event range that allows for replacement of events that have 
 
 Implementation
 --------------
-A *parameterized replaceable event* is defined as an event with a kind `30000 <= n < 40000`.
+The value of a tag is defined as the first parameter of a tag after the tag name.
+
+A *parameterized replaceable event* is defined as an event with a kind `30000 <= n < 40000`.  
 Upon a parameterized replaceable event with a newer timestamp than the currently known latest
 replaceable event with the same kind and first `d` tag value being received, the old event
-SHOULD be discarded and replaced with the newer event.
+SHOULD be discarded and replaced with the newer event.  
 A missing or a `d` tag with no value should be interpreted equivalent to a `d` tag with the
 value as an empty string. Events from the same author with any of the following `tags`
 replace each other:
@@ -1395,6 +1445,9 @@ replace each other:
 * `"tags":[["d",""],["d","not empty"]]`: only first `d` tag is considered
 * `"tags":[["d"],["d","some value"]]`: only first `d` tag is considered
 * `"tags":[["e"]]`: same as no tags
+* `"tags":[["d","test","1"]]`: only the value is considered (`test`)
+
+Clients SHOULD NOT use `d` tags with multiple values and SHOULD include the `d` tag even if it has no value to allow querying using the `#d` filter.
 
 Client Behavior
 ---------------
@@ -1520,7 +1573,7 @@ This NIP defines a way for clients to authenticate to relays by signing an ephem
 
 A relay may want to require clients to authenticate to access restricted resources. For example,
 
-  - A relay may request payment or other forms of whitelisting to publish events -- this can naÃ¯vely be achieved by limiting publication
+  - A relay may request payment or other forms of whitelisting to publish events -- this can naïvely be achieved by limiting publication
     to events signed by the whitelisted key, but with this NIP they may choose to accept any events as long as they are published from an
     authenticated user;
   - A relay may limit access to `kind: 4` DMs to only the parties involved in the chat exchange, and for that it may require authentication
@@ -1594,3 +1647,56 @@ To verify `AUTH` messages, relays must ensure:
   - that the `"challenge"` tag matches the challenge sent before;
   - that the `"relay"` tag matches the relay URL:
     - URL normalization techniques can be applied. For most cases just checking if the domain name is correct should be enough.
+
+
+---
+
+NIP-50
+======
+
+Search Capability
+-----------------
+
+`draft` `optional` `author:brugeman` `author:mikedilger` `author:fiatjaf`
+
+## Abstract
+
+Many Nostr use cases require some form of general search feature, in addition to structured queries by tags or ids. 
+Specifics of the search algorithms will differ between event kinds, this NIP only describes a general 
+extensible framework for performing such queries.
+
+## `search` filter field 
+
+A new `search` field is introduced for `REQ` messages from clients:
+```json
+{
+  ...
+  "search": <string>
+}
+```
+`search` field is a string describing a query in a human-readable form, i.e. "best nostr apps". 
+Relays SHOULD interpret the query to the best of their ability and return events that match it. 
+Relays SHOULD perform matching against `content` event field, and MAY perform
+matching against other fields if that makes sense in the context of a specific kind. 
+
+A query string may contain `key:value` pairs (two words separated by colon), these are extensions, relays SHOULD ignore 
+extensions they don't support.
+
+Clients may specify several search filters, i.e. `["REQ", "", { "search": "orange" }, { "kinds": [1, 2], "search": "purple" }]`. Clients may 
+include `kinds`, `ids` and other filter field to restrict the search results to particular event kinds.
+
+Clients SHOULD use the supported_nips field to learn if a relay supports `search` filter. Clients MAY send `search` 
+filter queries to any relay, if they are prepared to filter out extraneous responses from relays that do not support this NIP.
+
+Clients SHOULD query several relays supporting this NIP to compensate for potentially different 
+implementation details between relays.
+
+Clients MAY verify that events returned by a relay match the specified query in a way that suits the
+client's use case, and MAY stop querying relays that have low precision.
+
+Relays SHOULD exclude spam from search results by default if they supports some form of spam filtering.
+
+## Extensions
+
+Relay MAY support these extensions:
+- `include:spam` - turn off spam filtering, if it was enabled by default

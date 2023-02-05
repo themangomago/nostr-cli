@@ -1,19 +1,20 @@
 {
   "name": "nostr-cli",
   "version": "1.0.0",
-  "description": "",
+  "description": "Simple Nostr CLI",
   "main": "dist/cli.js",
   "scripts": {
     "build": "tsc && pkg dist/cli.js --targets node18-win-x64 --output nostrcli.exe",
     "build_linux": "tsc && pkg dist/cli.js --targets node18-linux-amd64 --output nostrcli",
-    "dev": "nodemon src/cli.ts -f=query.json "
+    "nodemon": "nodemon src/cli.ts -f=query.json -t=event -r=ws://127.0.0.1:8080",
+    "dev": "tsc && node dist/cli.js src/cli.ts -f=query.json -t=event -r=ws://127.0.0.1:8080"
   },
-  "author": "",
-  "license": "ISC",
+  "author": "@themangomago",
+  "license": "MIT",
   "dependencies": {
     "bech32": "^2.0.0",
     "buffer": "^6.0.3",
-    "nostr-tools": "^1.1.2",
+    "nostr-tools": "^1.2.1",
     "pkg": "^5.8.0",
     "websocket-polyfill": "^0.0.3",
     "ws": "^8.12.0",

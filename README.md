@@ -1,6 +1,7 @@
-# Super Tiny Nostr CLI
+# Simple Nostr CLI
 
-nostr cli that parses a provided json file to query a given nostr relay. Useful for testing and manually push data to nostr.
+A nostr cli to post and make requests to a nostr relay by parsing json files.
+
 
 ## Build
   
@@ -20,21 +21,63 @@ nostr cli that parses a provided json file to query a given nostr relay. Useful 
 
 ## Usage
 
-Create json files for the queries to be made:
+### Parameters
 
-  ```json
-  {
-    "type": "REQ",
-    "payload": {
-        "authors": ["df50f3108b22fade9b59f5ca664604166ad78428fb221aebf360dbb8051a997d"]
-    }
-  }
-  ```
+- `-t` or `--type` - Type of the request. Can be `event` or `req`.
+- `-f` or `--file` - Path to the json file.
+- `-r` or `--relay` - Url to the relay.
+- `-k` or `--key` - Private key to sign the message.
+- `-s` or `--silent` - Don't show the output.
+- `-o` or `--output` - Path to the output file (optional).
+- `-h` or `--help` - Show help.
 
-Call nostrcli:
-  
-  ```bash
-  nostrcli -f <file> -r <relay>
-  ```
 
-By default the relay is set to `http://localhost:8080` and the file is set to `query.json`.
+### Posting a message
+```json
+{
+  "content": "hello world",
+  "created_at": 0,
+  "id": "",
+  "kind": 1,
+  "pubkey": "",
+  "sig": "",
+  "tags": []
+}
+```
+
+Missing informations will be filled with valid data by the cli. 
+
+```bash
+nostrcli -t="event" -f=<file> -r=<relay>
+nostrcli -t="event" -f="query.json" -r="ws://127.0.0.1:8080"
+```
+
+### Making a request
+
+```json
+{
+  "authors": [
+    "29dd45962daff2248a97456bc0b57369e2aae84b42613fc7e53ac4a5de5c3198"
+  ]
+}
+```
+
+```bash
+nostrcli -t="req" -f=<file> -r=<relay>
+nostrcli -t="req" -f="query.json" -r="ws://127.0.0.1:8080"
+```
+Valid query parameters:
+- ids: string[]
+- kinds: number[]
+- authors: string[]
+- since: number
+- until: number
+- limit: number
+- #<string>: string[]
+
+## License
+[MIT](https://choosealicense.com/licenses/mit/)
+
+## Contact
+
+npub1mag0xyytytadax6e7h9xv3syze4d0ppglv3p46lnvrdmspg6n97sjplrzm
