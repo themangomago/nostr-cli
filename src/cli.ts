@@ -27,7 +27,7 @@ const argv = yargs
   .option("relay", {
     type: "string",
     describe: "Server URL",
-    default: "ws://localhost:8080",
+    default: "ws://127.0.0.1:8080",
   })
   .option("key", {
     type: "string",
@@ -208,7 +208,7 @@ async function performReq(query: object): Promise<string> {
       sub.on("event", (event: Event) => {
         if (!silent) {
           if (output === "") {
-            console.log("> ", event);
+            console.log(event);
           } else {
             console.log("Event received.");
           }
