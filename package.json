@@ -1,11 +1,10 @@
 {
   "name": "nostr-cli",
-  "version": "1.0.0",
   "description": "Simple Nostr CLI",
   "main": "dist/cli.js",
   "scripts": {
-    "build": "tsc && pkg dist/cli.js --targets node18-win-x64 --output nostrcli.exe",
-    "build_linux": "tsc && pkg dist/cli.js --targets node18-linux-amd64 --output nostrcli",
+    "build_win": "tsc && pkg dist/cli.js --targets node18-win-x64 --output nostrcli.exe",
+    "build_linux": "tsc && pkg dist/cli.js --targets node18-linux-x64 --output nostrcli",
     "nodemon": "nodemon src/cli.ts -f=query.json -t=event -r=ws://127.0.0.1:8080",
     "dev": "tsc && node dist/cli.js src/cli.ts -f=query.json -t=event -r=ws://127.0.0.1:8080"
   },

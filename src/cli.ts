@@ -13,43 +13,48 @@ import {
 import { Event } from "nostr-tools/event";
 import { Filter } from "nostr-tools/filter";
 
+const version = "1.0.0";
+
 const argv = yargs
   .option("file", {
     type: "string",
-    describe: "Query file in json format.",
+    describe: "Query file in json format, default: 'query.json'",
     default: "query.json",
   })
   .option("type", {
     type: "string",
     describe: "File type: 'req' or 'event'.",
-    default: "req",
+    demandOption: true,
   })
   .option("relay", {
     type: "string",
-    describe: "Server URL",
+    describe: "Server URL, default: 'ws://127.0.0.1:8080'",
     default: "ws://127.0.0.1:8080",
   })
   .option("key", {
     type: "string",
-    describe: "Private key to sign the event",
+    describe: "Private key to sign the event, default: 'fc9f8fd273d21eab275f780b27bd8a03997334678a7d6550b0a368b026630d7b'",
     default: "fc9f8fd273d21eab275f780b27bd8a03997334678a7d6550b0a368b026630d7b",
   })
   .option("output", {
     type: "string",
-    describe: "Output file",
-    default: "",
+    describe: "Output file, default: 'result.json'",
+    default: "result.json",
   })
   .option("silent", {
     type: "boolean",
-    describe: "Silent mode, no output",
+    describe: "Silent mode, default: false",
     default: false,
   })
+  .version(`${version}`)
   .alias("f", "file")
   .alias("t", "type")
   .alias("r", "relay")
   .alias("k", "key")
   .alias("s", "silent")
   .alias("o", "output")
+  .alias("h", "help")
+  .alias("v", "version")
   .help()
   .parseSync();
 
@@ -150,9 +155,9 @@ async function performEvent(query: object): Promise<string> {
     if (!validation || !verification) {
       reject(
         "Data validation or verification error.\nValidation: " +
-          validation +
-          "\nVerification: " +
-          verification
+        validation +
+        "\nVerification: " +
+        verification
       );
       return;
     }
