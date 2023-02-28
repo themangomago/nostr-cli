@@ -9,7 +9,7 @@ A nostr cli to post and make requests to a nostr relay by parsing json files.
 
   ```bash
   npm install
-  npm run build
+  npm run build_win
   ```
 
   Linux:
